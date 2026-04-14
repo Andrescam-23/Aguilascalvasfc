@@ -736,6 +736,12 @@
   ============================================================ -->
 <script>
 
+  // ── URL del puente con Google Sheets ──
+  // Esta es la dirección del Apps Script que recibe y entrega los datos.
+  // doPost → recibe registros nuevos
+  // doGet  → devuelve todos los registros guardados
+  const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwQfsfgL4cfbxFb-tp7dqxp-VflbXYDCf7XsMRF7m624G9hSP-c6tzLCOKEZfLKzheAWw/exec';
+
   // ── Variables de estado ──
   // selectionStep controla en qué momento del flujo está el usuario:
   //   1 = esperando que elija posición principal
@@ -750,11 +756,8 @@
   let secondaryRole    = '';    // ej: "Mediocampo"
   let secondarySubrole = '';    // ej: "MCO"
 
-  // Carga los jugadores ya guardados del almacenamiento local del navegador.
-  // localStorage es como un mini-archivo de texto que el navegador guarda por vos.
-  // JSON.parse convierte texto → objeto JavaScript (como json.loads en Python)
-  let roster = JSON.parse(localStorage.getItem('f8roster') || '[]');
-  //                                                            ↑ si no existe, usa lista vacía
+  // Lista de jugadores en memoria — se carga desde Google Sheets al abrir la página
+  let roster = [];
 
 
   // ── FUNCIÓN: switchTab ──
@@ -770,77 +773,57 @@
     document.getElementById('tab-' + tab).classList.add('active');
     document.getElementById('view-' + tab).classList.add('active');
 
-    // Si cambia a Plantilla, la actualiza con los datos más recientes
-    if (tab === 'plantilla') renderPlantilla();
+    // Si cambia a Plantilla, carga los datos frescos desde Google Sheets
+    if (tab === 'plantilla') loadRoster();
   }
 
 
   // ── FUNCIÓN: selectNode ──
   // Maneja los dos clics en la cancha — principal y secundaria.
-  // Recibe el elemento SVG que fue tocado (el <g> con class="role-node").
   function selectNode(el) {
 
     // PASO 1 — elige posición principal
     if (selectionStep === 1) {
-
-      // Si había una principal anterior, le quita el estilo visual
       if (primaryNode) primaryNode.classList.remove('selected-primary');
-
-      // Marca este como principal con brillo amarillo
       el.classList.add('selected-primary');
       primaryNode    = el;
-      primaryRole    = el.dataset.role;    // lee data-role del HTML
-      primarySubrole = el.dataset.subrole; // lee data-subrole del HTML
-
-      selectionStep = 2; // avanza al siguiente paso
-      updateStepIndicator();
-      updateSummary();
-      return; // sale de la función — no ejecuta el resto
-    }
-
-    // PASO 2 — elige posición secundaria
-    if (selectionStep === 2) {
-
-      // No puede elegir el mismo nodo que ya eligió como principal
-      if (el === primaryNode) {
-        showToast('⚠️ Elegí una posición diferente a la principal');
-        return;
-      }
-
-      // Si había una secundaria anterior, le quita el estilo
-      if (secondaryNode) secondaryNode.classList.remove('selected-secondary');
-
-      // Marca este como secundario con borde punteado
-      el.classList.add('selected-secondary');
-      secondaryNode    = el;
-      secondaryRole    = el.dataset.role;
-      secondarySubrole = el.dataset.subrole;
-
-      selectionStep = 3; // ambas elegidas
+      primaryRole    = el.dataset.role;
+      primarySubrole = el.dataset.subrole;
+      selectionStep  = 2;
       updateStepIndicator();
       updateSummary();
       return;
     }
 
-    // PASO 3 — ya eligió las dos.
-    // Si toca un nodo diferente a los dos seleccionados,
-    // reinicia el proceso con ese nodo como nueva principal.
-    if (el !== primaryNode && el !== secondaryNode) {
+    // PASO 2 — elige posición secundaria
+    if (selectionStep === 2) {
+      if (el === primaryNode) {
+        showToast('⚠️ Elegí una posición diferente a la principal');
+        return;
+      }
+      if (secondaryNode) secondaryNode.classList.remove('selected-secondary');
+      el.classList.add('selected-secondary');
+      secondaryNode    = el;
+      secondaryRole    = el.dataset.role;
+      secondarySubrole = el.dataset.subrole;
+      selectionStep    = 3;
+      updateStepIndicator();
+      updateSummary();
+      return;
+    }
 
-      // Limpia selecciones anteriores
+    // PASO 3 — reinicia si toca un nodo diferente
+    if (el !== primaryNode && el !== secondaryNode) {
       if (primaryNode)   primaryNode.classList.remove('selected-primary');
       if (secondaryNode) secondaryNode.classList.remove('selected-secondary');
-
-      // Empieza de nuevo con este nodo como principal
       el.classList.add('selected-primary');
-      primaryNode    = el;
-      primaryRole    = el.dataset.role;
-      primarySubrole = el.dataset.subrole;
+      primaryNode      = el;
+      primaryRole      = el.dataset.role;
+      primarySubrole   = el.dataset.subrole;
       secondaryNode    = null;
       secondaryRole    = '';
       secondarySubrole = '';
-
-      selectionStep = 2;
+      selectionStep    = 2;
       updateStepIndicator();
       updateSummary();
     }
@@ -848,59 +831,51 @@
 
 
   // ── FUNCIÓN: updateStepIndicator ──
-  // Actualiza el mensaje de instrucción encima de la cancha
-  // según en qué paso está el usuario.
+  // Actualiza el mensaje de instrucción encima de la cancha.
   function updateStepIndicator() {
     const indicator = document.getElementById('step-indicator');
-
     if (selectionStep === 1) {
-      indicator.className  = 'selection-step step-primary';
+      indicator.className   = 'selection-step step-primary';
       indicator.textContent = '1° Toca tu posición principal';
     } else if (selectionStep === 2) {
-      indicator.className  = 'selection-step step-secondary';
+      indicator.className   = 'selection-step step-secondary';
       indicator.textContent = '2° Ahora toca tu posición secundaria';
     } else {
-      indicator.className  = 'selection-step step-done';
+      indicator.className   = 'selection-step step-done';
       indicator.textContent = '✓ Listo — tocá un nodo para cambiar';
     }
   }
 
 
   // ── FUNCIÓN: updateSummary ──
-  // Actualiza el resumen final y decide si habilitar el botón de confirmar.
-  // Se llama cada vez que el usuario cambia algo.
+  // Actualiza el resumen y habilita el botón si todo está completo.
   function updateSummary() {
-
     const name = document.getElementById('playerName').value.trim();
-    // .trim() elimina espacios al inicio y al final, igual que en Python
-
-    // Actualiza los textos del resumen
-    document.getElementById('prev-name').textContent             = name || '(sin nombre)';
-    document.getElementById('prev-subrole').textContent          = primarySubrole   || '—';
-    document.getElementById('prev-role-badge').textContent       = primaryRole      || '';
-    document.getElementById('prev-secondary').textContent        = secondarySubrole || '(pendiente)';
-    document.getElementById('prev-secondary-badge').textContent  = secondaryRole    || '';
-
-    // Muestra la sección de resumen (estaba oculta)
-    document.getElementById('form-summary').style.display = 'block';
-
-    // Habilita el botón solo si los tres datos están completos
-    // Equivale a: if name and primaryRole and secondaryRole → True
+    document.getElementById('prev-name').textContent            = name || '(sin nombre)';
+    document.getElementById('prev-subrole').textContent         = primarySubrole   || '—';
+    document.getElementById('prev-role-badge').textContent      = primaryRole      || '';
+    document.getElementById('prev-secondary').textContent       = secondarySubrole || '(pendiente)';
+    document.getElementById('prev-secondary-badge').textContent = secondaryRole    || '';
+    document.getElementById('form-summary').style.display       = 'block';
     const ready = name && primaryRole && secondaryRole;
     document.getElementById('submitBtn').disabled = !ready;
   }
 
-  // Escucha cambios en el campo de nombre y actualiza el resumen en tiempo real
-  // Equivale a un event listener — como un callback en Python
   document.getElementById('playerName').addEventListener('input', updateSummary);
 
 
   // ── FUNCIÓN: submitForm ──
-  // Se ejecuta cuando el usuario toca "CONFIRMAR REGISTRO".
-  function submitForm() {
+  // Envía el registro a Google Sheets cuando el jugador confirma.
+  // Antes guardaba en localStorage — ahora envía a la URL del script.
+  async function submitForm() {
 
     const name = document.getElementById('playerName').value.trim();
-    if (!name || !primaryRole || !secondaryRole) return; // validación de seguridad
+    if (!name || !primaryRole || !secondaryRole) return;
+
+    // Deshabilita el botón mientras envía para evitar doble clic
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.textContent = 'ENVIANDO...';
 
     // Crea el objeto del jugador (como un diccionario en Python)
     const entry = {
@@ -908,53 +883,91 @@
       role:          primaryRole,
       subrole:       primarySubrole,
       secondaryRole: secondaryRole,
-      secondary:     secondarySubrole,
-      ts: new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })
-      // ts = timestamp, la hora del registro
+      secondary:     secondarySubrole
     };
 
-    // Agrega el jugador a la lista (como list.append() en Python)
-    roster.push(entry);
+    try {
+      // fetch = hacer una petición HTTP desde JavaScript
+      // Es como requests.post() en Python
+      await fetch(SHEETS_URL, {
+        method: 'POST',
+        mode: 'no-cors', // necesario para llamadas a Google Apps Script
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(entry)
+        // JSON.stringify convierte el objeto a texto — como json.dumps() en Python
+      });
 
-    // Guarda la lista en localStorage
-    // JSON.stringify convierte objeto → texto (como json.dumps en Python)
-    localStorage.setItem('f8roster', JSON.stringify(roster));
+      showToast(`✅ ${name} registrado`);
 
-    renderRoster();
-    showToast(`✅ ${name} registrado`);
+      // Resetea el formulario para el siguiente jugador
+      document.getElementById('playerName').value = '';
+      if (primaryNode)   primaryNode.classList.remove('selected-primary');
+      if (secondaryNode) secondaryNode.classList.remove('selected-secondary');
+      primaryNode = null; primaryRole = ''; primarySubrole = '';
+      secondaryNode = null; secondaryRole = ''; secondarySubrole = '';
+      selectionStep = 1;
+      updateStepIndicator();
+      document.getElementById('form-summary').style.display = 'none';
 
-    // Resetea el formulario para el siguiente jugador
-    document.getElementById('playerName').value = '';
-    if (primaryNode)   primaryNode.classList.remove('selected-primary');
-    if (secondaryNode) secondaryNode.classList.remove('selected-secondary');
-    primaryNode = null; primaryRole = ''; primarySubrole = '';
-    secondaryNode = null; secondaryRole = ''; secondarySubrole = '';
-    selectionStep = 1;
-    updateStepIndicator();
-    document.getElementById('form-summary').style.display = 'none';
-    document.getElementById('submitBtn').disabled = true;
+    } catch (error) {
+      // Si algo falla, muestra el error
+      showToast('❌ Error al enviar — revisá tu conexión');
+      console.log('Error:', error);
+    }
+
+    // Reactiva el botón
+    btn.textContent = 'CONFIRMAR REGISTRO';
+    btn.disabled = true; // sigue deshabilitado hasta nueva selección
+  }
+
+
+  // ── FUNCIÓN: loadRoster ──
+  // Carga todos los registros desde Google Sheets y los muestra.
+  // Se llama al abrir la pestaña Plantilla.
+  // Equivale a hacer un requests.get() en Python
+  async function loadRoster() {
+
+    // Muestra mensaje de carga mientras espera respuesta
+    document.getElementById('plantilla-total').textContent = 'Cargando registros...';
+
+    try {
+      const response = await fetch(SHEETS_URL);
+      // await espera la respuesta — como esperar el resultado de una función en Python
+
+      roster = await response.json();
+      // .json() convierte el texto de respuesta en objeto JavaScript — como json.loads() en Python
+
+      renderPlantilla();
+      renderRoster();
+
+    } catch (error) {
+      document.getElementById('plantilla-total').textContent = 'Error al cargar registros';
+      console.log('Error:', error);
+    }
   }
 
 
   // ── FUNCIÓN: renderRoster ──
-  // Dibuja la lista de jugadores registrados en la pestaña Censo.
-  // "Render" = convertir datos en elementos visuales HTML.
+  // Dibuja la lista detallada de jugadores en la pestaña Plantilla.
   function renderRoster() {
 
-    if (roster.length === 0) return;
+    const section = document.getElementById('roster-section');
+    const list    = document.getElementById('roster-list');
 
-    document.getElementById('roster-section').style.display = 'block';
-    const list = document.getElementById('roster-list');
-    list.innerHTML = ''; // limpia antes de redibujar (como limpiar una lista en Python)
+    if (roster.length === 0) {
+      section.style.display = 'none';
+      return;
+    }
+
+    section.style.display = 'block';
+    list.innerHTML = '';
 
     roster.forEach((p, i) => {
 
-      // Función interna: devuelve la clase CSS de color según el rol
-      // Equivale a un if/elif/else en Python
+      // Función interna: devuelve la clase CSS según el rol
       const tagClass = role => role === 'Defensa'    ? 'tag-def'   :
                                role === 'Mediocampo' ? 'tag-trans' : 'tag-atk';
 
-      // Template literal (como f-string en Python) para generar HTML dinámico
       list.innerHTML += `
         <div class="roster-item">
           <div class="roster-num">${String(i + 1).padStart(2, '0')}</div>
@@ -970,22 +983,17 @@
 
 
   // ── FUNCIÓN: renderPlantilla ──
-  // Dibuja la vista de Plantilla — jugadores agrupados por zona en tres columnas.
-  // Se ejecuta cada vez que el usuario cambia a esa pestaña.
+  // Dibuja las columnas por zona en la pestaña Plantilla.
   function renderPlantilla() {
 
-    // Agrupa jugadores por rol (como un defaultdict en Python)
     const groups = { Defensa: [], Mediocampo: [], Ataque: [] };
     roster.forEach(p => {
       if (groups[p.role]) groups[p.role].push(p);
     });
 
-    // Actualiza el contador total
     document.getElementById('plantilla-total').textContent =
       `${roster.length} jugador${roster.length !== 1 ? 'es' : ''} registrado${roster.length !== 1 ? 's' : ''}`;
 
-    // Actualiza cada columna de zona
-    // La función fillZona recibe el id del div, el array de jugadores y el rol
     fillZona('zona-def',   'count-def',   groups.Defensa);
     fillZona('zona-trans', 'count-trans', groups.Mediocampo);
     fillZona('zona-atk',   'count-atk',  groups.Ataque);
@@ -994,23 +1002,16 @@
 
   // ── FUNCIÓN: fillZona ──
   // Rellena una columna de la plantilla con los jugadores de esa zona.
-  // zoneId  = id del div donde escribir
-  // countId = id del span del contador
-  // players = lista de jugadores de esa zona
   function fillZona(zoneId, countId, players) {
 
     const zone = document.getElementById(zoneId);
-
-    // Actualiza el contador del encabezado
     document.getElementById(countId).textContent = players.length > 0 ? `(${players.length})` : '';
 
-    // Si no hay jugadores en esa zona, muestra mensaje vacío
     if (players.length === 0) {
       zone.innerHTML = `<div class="zona-empty">Sin jugadores</div>`;
       return;
     }
 
-    // Genera una tarjeta por cada jugador
     zone.innerHTML = players.map(p => `
       <div class="zona-player">
         <div class="zona-player-name">${p.name}</div>
@@ -1018,49 +1019,34 @@
         <div class="zona-player-sec">2° ${p.secondary} · ${p.secondaryRole}</div>
       </div>
     `).join('');
-    // .map() recorre la lista y transforma cada elemento (como list comprehension en Python)
-    // .join('') une todos los strings del array en uno solo
   }
 
 
   // ── FUNCIÓN: clearRoster ──
-  // Borra todos los registros del localStorage y limpia las vistas.
+  // Limpia la vista local — no borra Google Sheets.
+  // Para borrar los datos reales hay que hacerlo directamente en la hoja.
   function clearRoster() {
-
-    // Confirmación antes de borrar — ventana nativa del navegador
-    if (!confirm('¿Seguro que querés borrar todos los registros?')) return;
-
-    roster = []; // vacía la lista en memoria
-    localStorage.removeItem('f8roster'); // borra del almacenamiento local
-
-    // Limpia la vista de Censo
-    document.getElementById('roster-section').style.display = 'none';
-    document.getElementById('roster-list').innerHTML = '';
-
-    // Actualiza la vista de Plantilla
+    if (!confirm('¿Seguro que querés limpiar la vista? Los datos en Google Sheets no se borran.')) return;
+    roster = [];
     renderPlantilla();
-    showToast('🗑️ Registros eliminados');
+    renderRoster();
+    showToast('🗑️ Vista limpiada');
   }
 
 
   // ── FUNCIÓN: exportRoster ──
-  // Genera un archivo .txt con el plantel organizado por zona y lo descarga.
+  // Descarga el plantel como archivo .txt.
   function exportRoster() {
 
     let txt = `CENSO POSICIONAL — Agulas Calvas FC\n${'─'.repeat(45)}\n`;
-
-    // Agrupa jugadores por rol (como un defaultdict en Python)
     const groups = { Defensa: [], Mediocampo: [], Ataque: [] };
     roster.forEach(p => { if (groups[p.role]) groups[p.role].push(p); });
-
-    // Escribe cada grupo en el texto
     Object.entries(groups).forEach(([role, players]) => {
       if (players.length === 0) return;
       txt += `\n[${role.toUpperCase()}] (${players.length})\n`;
       players.forEach(p => txt += `  • ${p.name} — ${p.subrole} | 2°: ${p.secondary}\n`);
     });
 
-    // Crea un archivo en memoria y lanza la descarga automáticamente
     const blob = new Blob([txt], { type: 'text/plain' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -1070,38 +1056,33 @@
 
 
   // ── FUNCIÓN: showToast ──
-  // Muestra la notificación temporal en la parte inferior de la pantalla.
+  // Muestra la notificación temporal en la parte inferior.
   function showToast(msg) {
     const t = document.getElementById('toast');
     t.textContent = msg;
-    t.classList.add('show');          // sube a posición visible (animación CSS)
+    t.classList.add('show');
     setTimeout(() => t.classList.remove('show'), 2800);
-    // setTimeout = ejecutar algo después de N milisegundos (2800ms = 2.8 segundos)
-    // Es como time.sleep() en Python pero sin bloquear el programa
   }
 
 
- // ── FUNCIÓN: isAdmin ──
-// Lee la URL del navegador y verifica si tiene ?admin=true.
-// window.location.search devuelve todo lo que hay después del ?
-// Equivale a leer un argumento en Python
-function isAdmin() {
-  const params = new URLSearchParams(window.location.search);
-  // URLSearchParams convierte "?admin=true" en un objeto consultable
-  return params.get('admin') === 'true';
-  // .get('admin') busca el valor de ese parámetro — como dict['admin'] en Python
-}
+  // ── FUNCIÓN: isAdmin ──
+  // Lee la URL y verifica si tiene ?admin=true.
+  // Equivale a leer un argumento en Python.
+  function isAdmin() {
+    const params = new URLSearchParams(window.location.search);
+    // URLSearchParams convierte "?admin=true" en un objeto consultable
+    return params.get('admin') === 'true';
+  }
 
-// ── Inicialización ──
-// Esto se ejecuta cuando la página carga por primera vez.
-renderRoster();
-renderPlantilla();
 
-// Muestra el botón de limpiar solo si la URL tiene ?admin=true
-if (!isAdmin()) {
-  const btnLimpiar = document.querySelector('[onclick="clearRoster()"]');
-  if (btnLimpiar) btnLimpiar.style.display = 'none';
-}
+  // ── Inicialización ──
+  // Se ejecuta cuando la página carga por primera vez.
+  // Oculta el botón de limpiar si no es admin.
+  if (!isAdmin()) {
+    const btnLimpiar = document.querySelector('[onclick="clearRoster()"]');
+    if (btnLimpiar) btnLimpiar.style.display = 'none';
+  }
+
 </script>
 
 </body>
