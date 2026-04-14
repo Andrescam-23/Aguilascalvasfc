@@ -22,9 +22,9 @@
   <title>Agulas Calvas FC</title>
   <!-- El texto que aparece en la pestaña del navegador -->
 
- <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <!-- Carga fuentes tipográficas desde Google Fonts (requiere internet).
-       "Bebas Neue" = títulos grandes en mayúscula
+       "Montserrat" = títulos con peso visual fuerte
        "DM Sans"    = texto general, limpio y legible -->
 </head>
 
@@ -35,30 +35,36 @@
   En Python sería el bloque main() — el cuerpo del programa.
   ============================================================ -->
 <body>
-<div class="bg"></div>   <!-- fondo decorativo -->
+<div class="bg"></div>
+<!-- .bg es un div vacío que sirve solo como lienzo para el fondo decorativo.
+     El CSS lo convierte en una capa fija detrás de todo el contenido. -->
+
 
 <!-- ============================================================
   SECCIÓN 1 — ESTILOS (CSS)
   Define cómo se ve cada elemento: colores, tamaños, animaciones.
   Es como un diccionario de apariencias:
-    "todo lo que tenga clase .boton → fondo verde, texto blanco"
+    "todo lo que tenga clase .boton → fondo negro, texto dorado"
+
+  NOTA: Lo ideal es que el <style> esté en el <head>, pero funciona
+  igual aquí dentro del <body>. En proyectos grandes se separa en
+  un archivo .css externo.
   ============================================================ -->
 <style>
 
   /* ── Variables globales de color ──
      Funcionan como constantes en Python.
-     En vez de repetir "#0d2b1a" en 50 lugares,
-     lo defino una vez y lo uso como var(--green-dark).
+     En vez de repetir "#c9a84c" en 50 lugares,
+     lo defino una vez y lo uso como var(--accent).
      Si quiero cambiar el color, lo cambio en un solo lugar. */
   :root {
-    --green-dark:   #0d2b1a;          /* fondo principal, verde muy oscuro */
-    --green-mid: rgba(255,255,255,0.04);  /* antes era verde, ahora casi transparente */
-    --green-field:  #2d7a45;          /* verde del césped */
-    --accent:       #ccab4f ;          /* amarillo — color de énfasis */
+    --black:        #07070b;          /* fondo base, negro casi puro */
+    --green-mid:    rgba(255,255,255,0.04); /* fondo de tarjetas, casi transparente */
+    --accent:       #ccab4f;          /* dorado — color de énfasis principal */
     --accent2:      #ff6b35;          /* naranja — acento secundario */
     --text:         #f0ede6;          /* color del texto principal */
     --text-muted:   rgba(240,237,230,0.55); /* texto secundario, semitransparente */
-    --card:         rgba(255,255,255,0.06); /* fondo de tarjetas, casi transparente */
+    --card:         rgba(255,255,255,0.06); /* fondo de tarjetas */
     --card-border:  rgba(255,255,255,0.12); /* borde de tarjetas */
     --defense:      #4a90e2;          /* azul — color del rol Defensa */
     --transition:   #9b59b6;          /* violeta — color del rol Mediocampo */
@@ -66,8 +72,8 @@
   }
 
   /* ── Reset básico ──
-     Por defecto, los navegadores agregan márgenes y padding
-     a los elementos. Esto los elimina para partir de cero. */
+     Por defecto, los navegadores agregan márgenes y padding.
+     Esto los elimina para partir de cero — como limpiar una pizarra. */
   * {
     box-sizing: border-box; /* el tamaño incluye padding y bordes */
     margin: 0;
@@ -75,107 +81,126 @@
   }
 
   /* ── Cuerpo de la página ── */
-body {
-  font-family: 'DM Sans', sans-serif;
-  background: #07070b;        /* negro base */
-  color: var(--text);
-  min-height: 100vh;
-  overflow-x: hidden;
-}
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--black);
+    color: var(--text);
+    min-height: 100vh; /* ocupa al menos toda la pantalla verticalmente */
+    overflow-x: hidden; /* evita scroll horizontal accidental */
+  }
 
-/* ── Fondo con glows morados y patrón geométrico ──
-   Tres capas apiladas:
-   .bg         → los gradientes radiales (glows)
-   .bg::before → el patrón de rombos
-   .bg::after  → la viñeta oscura en los bordes */
-.bg {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  background:
-    /* glows morados */
-    radial-gradient(circle at 50% 12%, rgba(122,51,181,0.20), transparent 28%),
-    radial-gradient(circle at 50% 88%, rgba(122,51,181,0.16), transparent 30%),
-    radial-gradient(circle at 15% 70%, rgba(95,30,150,0.16),  transparent 22%),
-    radial-gradient(circle at 85% 68%, rgba(95,30,150,0.16),  transparent 22%),
-    radial-gradient(circle at 50% 48%, rgba(212,175,55,0.06), transparent 18%),
-    /* ← acá va la línea de luz horizontal */
-    linear-gradient(
-      90deg,
-      transparent 0%,
-      rgba(212,175,55,0.10) 50%,
-      transparent 100%
-    ),
-    /* base oscura — siempre al final */
-    linear-gradient(180deg, #09090d 0%, #06060a 100%);
-}
+  /* ══════════════════════════════════════════
+    FONDO DECORATIVO
+    Tres capas CSS apiladas sobre el div .bg:
+      .bg         → glows morados + línea dorada + base oscura
+      .bg::before → patrón geométrico de rombos
+      .bg::after  → viñeta oscura en los bordes
+    Todas usan position:fixed para cubrir toda la pantalla
+    y z-index:-1 para quedar detrás del contenido.
+  ══════════════════════════════════════════ */
 
-.bg::before {
-  content: '';
-  position: absolute; inset: 0;
-  opacity: 0.18;
-  background:
-    linear-gradient(45deg,  transparent 0 43%, rgba(120,70,170,0.1) 43% 50%, transparent 50% 100%),
-    linear-gradient(-45deg, transparent 0 43%, rgba(120,70,170,0.04) 43% 50%, transparent 50% 100%);
-  background-size: 40px 40px;
-  mix-blend-mode: screen;
-}
+  /* Capa 1 — gradientes radiales (glows) y base */
+  .bg {
+    position: fixed;
+    inset: 0;      /* equivale a top:0; right:0; bottom:0; left:0 */
+    z-index: -1;   /* detrás de todo el contenido */
+    background:
+      /* glow morado superior */
+      radial-gradient(circle at 50% 12%, rgba(122,51,181,0.20), transparent 28%),
+      /* glow morado inferior */
+      radial-gradient(circle at 50% 88%, rgba(122,51,181,0.16), transparent 30%),
+      /* manchas laterales moradas */
+      radial-gradient(circle at 15% 70%, rgba(95,30,150,0.16),  transparent 22%),
+      radial-gradient(circle at 85% 68%, rgba(95,30,150,0.16),  transparent 22%),
+      /* brillo dorado sutil en el centro */
+      radial-gradient(circle at 50% 48%, rgba(212,175,55,0.06), transparent 18%),
+      /* línea de luz horizontal dorada */
+      linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(212,175,55,0.10) 50%,
+        transparent 100%
+      ),
+      /* base oscura — siempre al final, es el color de fondo real */
+      linear-gradient(180deg, #09090d 0%, #06060a 100%);
+  }
 
-.bg::after {
-  content: '';
-  position: absolute; inset: 0;
-  background: radial-gradient(circle at center, transparent 42%, rgba(0,0,0,0.22) 68%, rgba(0,0,0,0.62) 100%);
-  pointer-events: none;
-}
+  /* Capa 2 — patrón de rombos geométricos
+     Dos linear-gradient en 45° y -45° crean el efecto de rombo.
+     background-size controla el tamaño de cada rombo. */
+  .bg::before {
+    content: '';
+    position: absolute; inset: 0;
+    opacity: 0.18;   /* cuanto más alto, más visible el patrón */
+    background:
+      linear-gradient(45deg,  transparent 0 43%, rgba(120,70,170,0.1)  43% 50%, transparent 50% 100%),
+      linear-gradient(-45deg, transparent 0 43%, rgba(120,70,170,0.04) 43% 50%, transparent 50% 100%);
+    background-size: 40px 40px; /* tamaño de cada rombo — más pequeño = más denso */
+    mix-blend-mode: screen;     /* modo de fusión que aclara sobre el fondo oscuro */
+  }
+
+  /* Capa 3 — viñeta oscura en los bordes
+     Hace que los bordes sean más oscuros que el centro,
+     dando profundidad y foco al contenido central. */
+  .bg::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(
+      circle at center,
+      transparent 42%,
+      rgba(0,0,0,0.22) 68%,
+      rgba(0,0,0,0.62) 100%
+    );
+    pointer-events: none; /* no interfiere con clics */
+  }
 
   /* ── Contenedor central ──
      Limita el ancho máximo y centra el contenido en pantallas grandes */
   .container {
     position: relative;
-    z-index: 1;
+    z-index: 1;        /* encima del fondo (.bg tiene z-index:-1) */
     max-width: 820px;
-    margin: 0 auto; /* centrado horizontal */
+    margin: 0 auto;    /* centrado horizontal */
     padding: 28px 20px 60px;
   }
 
   /* ── Header — zona del título ── */
   header { text-align: center; margin-bottom: 36px; }
 
-  /* Etiqueta amarilla pequeña arriba del título */
+  /* Etiqueta pequeña encima del título */
   .badge {
     display: inline-block;
     background: var(--accent); color: #111;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 11px; letter-spacing: 2.5px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 11px; font-weight: 700; letter-spacing: 2.5px;
     padding: 4px 14px; border-radius: 2px;
     margin-bottom: 12px;
   }
 
-  /* Título principal grande */
+  /* Título principal grande con resplandor dorado */
   h1 {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 800;
+    font-size: clamp(32px, 7vw, 56px); /* tamaño fluido: mínimo 32px, máximo 56px */
+    letter-spacing: 2px; line-height: 1.1;
+    margin-bottom: 10px;
     text-shadow:
-    0 0 20px rgba(212, 175, 55, 0.6),   /* resplandor dorado amplio */
-    0 0 8px  rgba(212, 175, 55, 0.4);   /* resplandor dorado más concentrado */
-  font-family: 'Montserrat', sans-serif;
-  font-weight: 800;  /* ExtraBold */
-}
+      0 0 20px rgba(212,175,55,0.6),  /* resplandor dorado amplio */
+      0 0 8px  rgba(212,175,55,0.4);  /* resplandor dorado concentrado */
+  }
 
-.section-title {
-  font-family: 'Montserrat', sans-serif;
-  text-shadow: 0 0 15px rgba(212, 175, 55, 0.5);
-  font-weight: 600;
-}
-  h1 span { color: var(--accent);
+  /* Las palabras resaltadas en dorado dentro del h1 */
+  h1 span {
     color: #c9a84c;
-  text-shadow:
-    0 0 25px rgba(212, 175, 55, 0.8),
-    0 0 10px rgba(212, 175, 55, 0.6);
-   } /* la palabra resaltada en amarillo */
+    text-shadow:
+      0 0 25px rgba(212,175,55,0.8),
+      0 0 10px rgba(212,175,55,0.6);
+  }
 
   header p { color: var(--text-muted); font-size: 15px; max-width: 420px; margin: 0 auto; }
 
   /* ── Pestañas de navegación ──
-     Dos botones que permiten cambiar entre "Censo" y "Plantilla".
+     Dos botones que permiten cambiar entre "Plantilla" y "Censo".
      Solo una vista es visible a la vez — JavaScript controla cuál. */
   .tabs {
     display: flex;
@@ -192,15 +217,15 @@ body {
     background: transparent;
     border: none;
     color: var(--text-muted);
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 16px; letter-spacing: 2px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px; font-weight: 600; letter-spacing: 1px;
     padding: 12px;
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.2s;
   }
 
-  /* Pestaña activa — fondo amarillo, texto oscuro */
+  /* Pestaña activa — fondo dorado, texto oscuro */
   .tab-btn.active {
     background: var(--accent);
     color: #111;
@@ -235,7 +260,7 @@ body {
     font-family: 'DM Sans', sans-serif;
     font-size: 16px; padding: 13px 16px;
     border-radius: 6px; outline: none;
-    transition: border-color 0.2s, background 0.2s; /* animación suave al enfocar */
+    transition: border-color 0.2s, background 0.2s;
   }
   input[type="text"]:focus {
     /* :focus = cuando el usuario hace clic en el campo */
@@ -246,15 +271,17 @@ body {
 
   /* ── Títulos de sección ── */
   .section-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 22px; letter-spacing: 2px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 18px; font-weight: 600; letter-spacing: 2px;
     color: var(--accent); margin-bottom: 16px;
     display: flex; align-items: center; gap: 10px;
+    text-shadow: 0 0 15px rgba(212,175,55,0.5);
+    text-transform: uppercase;
   }
-  /* La línea horizontal que aparece a la derecha del título */
+  /* Línea horizontal decorativa a la derecha del título */
   .section-title::after {
     content: ''; flex: 1; height: 1px;
-    background: var(--card-border);
+    background: linear-gradient(90deg, var(--card-border), transparent);
   }
 
   /* ── Contenedor de la cancha ── */
@@ -274,31 +301,45 @@ body {
   svg.pitch { width: 100%; height: auto; display: block; }
 
   /* ── Nodos interactivos sobre la cancha ──
-     Cada posición (Lateral, Volante, etc.) es un "nodo".
-     Son grupos SVG con clase .role-node */
+     Cada posición es un grupo SVG con clase .role-node.
+     cursor:pointer muestra la manito al pasar el mouse. */
   .role-node {
-    cursor: pointer; /* muestra manito al pasar el mouse */
-    transition: transform 0.15s; /* animación suave */
+    cursor: pointer;
+    transition: transform 0.15s;
   }
-  .role-node:hover { transform: scale(1.01); /* crece un poco al pasar el mouse */ }
+  .role-node:hover { transform: scale(1.04); }
   .role-node .node-circle { transition: fill-opacity 0.15s; }
   .role-node:hover .node-circle { fill-opacity: 0.95; }
 
-  /* Posición PRINCIPAL — brillo amarillo sólido
-     El jugador eligió este como su rol principal */
+  /* Posición PRINCIPAL — resplandor dorado sólido al seleccionar */
   .role-node.selected-primary .node-circle {
     stroke: var(--accent);
-    stroke-width: 3.5;
-    filter: drop-shadow(0 0 10px var(--accent));
+    stroke-width: 2.5;
+    filter: drop-shadow(0 0 8px var(--accent));
   }
 
   /* Posición SECUNDARIA — borde blanco punteado, más sutil
-     stroke-dasharray: "4 unidades de línea, 2 de espacio" = punteado */
+     stroke-dasharray: "4px de línea, 2px de espacio" = efecto punteado */
   .role-node.selected-secondary .node-circle {
     stroke: rgba(255,255,255,0.9);
-    stroke-width: 2;
+    stroke-width: 1.5;
     stroke-dasharray: 4 2;
     filter: drop-shadow(0 0 5px rgba(255,255,255,0.4));
+  }
+
+  /* ── Brillo en los textos de los nodos SVG ──
+     En SVG no funciona text-shadow — se usa filter:drop-shadow.
+     Dos capas: una concentrada y otra amplia dan el efecto de halo. */
+  .node-text-gold {
+    /* Brillo dorado — para nodos de Ataque, Defensa y Portero */
+    filter: drop-shadow(0 0 3px rgba(212,175,55,0.9))
+            drop-shadow(0 0 7px rgba(212,175,55,0.5));
+  }
+
+  .node-text-purple {
+    /* Brillo morado — para nodos de Mediocampo */
+    filter: drop-shadow(0 0 3px rgba(179,157,219,0.9))
+            drop-shadow(0 0 7px rgba(179,157,219,0.5));
   }
 
   /* ── Indicador de paso ──
@@ -312,8 +353,11 @@ body {
     padding: 8px 16px; border-radius: 20px;
     transition: all 0.3s;
   }
+  /* Paso 1 — dorado: eligiendo principal */
   .step-primary   { background: rgba(240,201,64,0.15);  color: var(--accent);  border: 1px solid rgba(240,201,64,0.35); }
+  /* Paso 2 — blanco: eligiendo secundaria */
   .step-secondary { background: rgba(255,255,255,0.08); color: var(--text);    border: 1px solid rgba(255,255,255,0.2); }
+  /* Paso 3 — verde: selección completa */
   .step-done      { background: rgba(45,122,69,0.3);    color: #7dffaa;        border: 1px solid rgba(125,255,170,0.3); }
 
   /* ── Leyenda de colores encima de la cancha ── */
@@ -342,7 +386,7 @@ body {
   }
   .summary-row .s-val { font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 8px; }
 
-  /* Etiqueta de rol (ej: "Defensa") junto al subrol */
+  /* Etiqueta de rol junto al nombre de posición */
   .s-badge {
     font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 600;
   }
@@ -353,35 +397,41 @@ body {
   .submit-area { text-align: center; margin-top: 36px; }
 
   .submit-btn {
-    background: var(--accent); color: #ffffff;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 20px; letter-spacing: 2px;
+    background: var(--accent); color: #111;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 16px; font-weight: 700; letter-spacing: 2px;
     padding: 16px 48px; border: none;
     border-radius: 6px; cursor: pointer;
     transition: all 0.2s;
+    text-transform: uppercase;
   }
   .submit-btn:hover {
-    background: #f7d44c;
-    transform: translateY(-2px); /* sube 2px al pasar el mouse */
-    box-shadow: 0 8px 24px rgba(240,201,64,0.3);
+    background: #e8c96d;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(212,175,55,0.3);
   }
-  /* Cuando está deshabilitado (campos incompletos) */
+  /* Deshabilitado mientras los campos estén incompletos */
   .submit-btn:disabled {
     opacity: 0.35; cursor: not-allowed;
     transform: none; box-shadow: none;
   }
 
-  /* ── Lista de jugadores (pestaña Censo) ── */
+  /* ── Lista de jugadores registrados ── */
   .roster-section { margin-top: 48px; }
 
   .roster-item {
     background: var(--card); border: 1px solid var(--card-border);
     border-radius: 8px; padding: 14px 18px; margin-bottom: 8px;
     display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    transition: border-color 0.2s;
   }
+  .roster-item:hover { border-color: rgba(212,175,55,0.3); }
+
   .roster-num {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 22px; color: var(--text-muted); width: 24px; flex-shrink: 0;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 20px; font-weight: 700;
+    color: var(--accent); opacity: 0.5;
+    width: 28px; flex-shrink: 0;
   }
   .roster-name { font-weight: 600; font-size: 15px; flex: 1; }
   .roster-tags { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -395,36 +445,67 @@ body {
   .tag-trans { background: rgba(155,89,182,0.2);  color: #c39bd3; }
   .tag-atk   { background: rgba(231,76,60,0.2);   color: #ff8a80; }
 
-  /* ── Plantilla — tabla de jugadores por zona ──
-     Muestra el plantel organizado visualmente por rol:
-     columna Defensa | columna Mediocampo | columna Ataque */
+  /* ── Layout horizontal de Plantilla ──
+     Cancha a la izquierda, columnas a la derecha.
+     display:flex pone los dos elementos en la misma fila.
+     align-items:flex-start los alinea desde arriba. */
+  .plantilla-layout {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    margin-bottom: 24px;
+  }
+
+  /* La cancha ocupa 42% del ancho — fijo, no crece ni encoge */
+  .plantilla-pitch {
+    flex: 0 0 42%;
+    margin-bottom: 0 !important; /* override del margin-bottom del pitch-wrapper */
+  }
+
+  /* Las columnas ocupan el espacio restante — apiladas verticalmente */
+  .plantilla-cols {
+    flex: 1;
+    display: flex;
+    flex-direction: column; /* una columna debajo de la otra */
+    gap: 8px;
+  }
+
+  /* En celular — se apilan verticalmente */
+  @media (max-width: 600px) {
+    .plantilla-layout   { flex-direction: column; }
+    .plantilla-pitch    { flex: none; width: 100%; }
+    .plantilla-cols     { flex-direction: row; flex-wrap: wrap; }
+    .plantilla-cols .zona-col { flex: 1 1 100%; }
+  }
+
+  /* ── Plantilla — columnas por zona ──
+     Grid de tres columnas: Defensa | Mediocampo | Ataque */
   .plantilla-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr; /* tres columnas iguales */
+    grid-template-columns: 1fr 1fr 1fr;
     gap: 16px;
     margin-bottom: 24px;
   }
 
-  /* Cada columna de zona */
   .zona-col {
     background: var(--card);
     border: 1px solid var(--card-border);
     border-radius: 10px;
-    overflow: hidden; /* los bordes redondeados afectan a los hijos */
+    overflow: hidden;
   }
 
-  /* Encabezado de cada columna con color del rol */
+  /* Encabezado de cada columna con color de zona */
   .zona-header {
     padding: 10px 14px;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 14px; letter-spacing: 2px;
-    text-align: center;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 12px; font-weight: 700; letter-spacing: 2px;
+    text-align: center; text-transform: uppercase;
   }
-  .zona-header-def   { background: rgba(74,144,226,0.25);  color: #7ab8ff; }
-  .zona-header-trans { background: rgba(155,89,182,0.25);  color: #c39bd3; }
-  .zona-header-atk   { background: rgba(231,76,60,0.25);   color: #ff8a80; }
+  .zona-header-def   { background: rgba(74,144,226,0.2);  color: #7ab8ff; }
+  .zona-header-trans { background: rgba(155,89,182,0.2);  color: #c39bd3; }
+  .zona-header-atk   { background: rgba(231,76,60,0.2);   color: #ff8a80; }
 
-  /* Cada jugador dentro de la columna */
+  /* Tarjeta de cada jugador dentro de la columna */
   .zona-player {
     padding: 10px 14px;
     border-bottom: 1px solid var(--card-border);
@@ -435,38 +516,37 @@ body {
   .zona-player-pos  { font-size: 11px; color: var(--text-muted); }
   .zona-player-sec  { font-size: 10px; color: var(--text-muted); margin-top: 2px; opacity: 0.7; }
 
-  /* Mensaje cuando la columna está vacía */
+  /* Mensaje cuando no hay jugadores en esa zona */
   .zona-empty {
-    padding: 16px 14px;
+    padding: 20px 14px;
     font-size: 12px; color: var(--text-muted);
     text-align: center; font-style: italic;
   }
 
-  /* Contador de jugadores por zona */
   .zona-count {
     font-size: 11px; font-family: 'DM Sans', sans-serif;
     font-weight: 400; margin-left: 4px; opacity: 0.7;
   }
 
-  /* Responsive: en celular las columnas se apilan verticalmente */
+  /* Responsive: en celular las columnas se apilan */
   @media (max-width: 500px) {
     .plantilla-grid { grid-template-columns: 1fr; }
   }
 
   /* ── Notificación temporal (toast) ──
-     El mensaje "✅ Jugador registrado" que aparece abajo.
-     Empieza fuera de pantalla (translateY 80px) y sube con clase .show */
+     Aparece abajo de la pantalla durante 2.8 segundos.
+     Empieza oculta (translateY 80px) y sube al agregar clase .show */
   .toast {
     position: fixed; bottom: 28px; left: 50%;
-    transform: translateX(-50%) translateY(80px); /* centrado horizontal, abajo de pantalla */
-    background: #1a3a26; border: 1px solid var(--accent);
+    transform: translateX(-50%) translateY(80px);
+    background: #1a1a2e; border: 1px solid var(--accent);
     color: var(--text); font-size: 14px; padding: 14px 24px;
     border-radius: 8px; z-index: 1000;
     transition: transform 0.3s ease;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    box-shadow: 0 4px 20px rgba(212,175,55,0.2);
   }
   .toast.show {
-    transform: translateX(-50%) translateY(0); /* sube a posición visible */
+    transform: translateX(-50%) translateY(0);
   }
 
 </style>
@@ -475,8 +555,8 @@ body {
 <!-- ============================================================
   SECCIÓN 2 — HTML (Estructura visual)
   Define los elementos que aparecen en pantalla.
-  Las clases (class="...") conectan cada elemento con los estilos CSS.
-  Los ids (id="...") permiten que JavaScript encuentre elementos específicos.
+  Las clases (class="...") conectan con los estilos CSS.
+  Los ids (id="...") permiten que JavaScript encuentre elementos.
   ============================================================ -->
 
 <div class="container">
@@ -490,74 +570,122 @@ body {
 
   <!--
     PESTAÑAS DE NAVEGACIÓN
-    Dos botones que alternan entre las vistas "Censo" y "Plantilla".
-    onclick="switchTab('censo')" → llama a la función JavaScript al hacer clic.
-    La clase "active" define cuál se ve resaltada — JavaScript la mueve entre botones.
+    La pestaña Plantilla está primero y tiene clase "active" por defecto.
+    Eso la hace la vista inicial cuando se carga la página.
   -->
   <div class="tabs">
-    <button class="tab-btn"        id="tab-plantilla" onclick="switchTab('plantilla')">⚽ Plantilla</button>
-    <button class="tab-btn active" id="tab-censo"    onclick="switchTab('censo')">📋 Censo</button>
+    <button class="tab-btn active" id="tab-plantilla" onclick="switchTab('plantilla')">⚽ Plantilla</button>
+    <button class="tab-btn"        id="tab-censo"     onclick="switchTab('censo')">📋 Censo</button>
   </div>
 
+
   <!-- ══════════════════════════════════════════
-    VISTA 1 — PLANTILLA
-    Muestra todos los jugadores registrados
-    organizados por zona: Defensa | Mediocampo | Ataque.
-    Oculta por defecto — se activa al hacer clic en la pestaña.
+    VISTA 1 — PLANTILLA (activa por defecto)
+    Muestra los jugadores agrupados por zona.
+    Tiene clase "active" para ser la vista inicial.
   ══════════════════════════════════════════ -->
-  <div class="tab-view" id="view-plantilla">
+  <div class="tab-view active" id="view-plantilla">
 
     <p class="section-title">Plantilla del partido</p>
 
-    <!-- Contador total de jugadores -->
+    <!-- Contador total — JavaScript actualiza este texto -->
     <p style="color:var(--text-muted); font-size:13px; margin-bottom:20px;" id="plantilla-total">
-      0 jugadores registrados
+      Cargando registros...
     </p>
 
     <!--
-      Grid de tres columnas — una por zona.
-      El contenido de cada columna (.zona-col) lo genera JavaScript
-      leyendo la lista de jugadores guardados.
+      LAYOUT HORIZONTAL — cancha a la izquierda, columnas a la derecha.
+      .plantilla-layout usa flexbox para ponerlos lado a lado.
+      En celular (< 600px) se apilan verticalmente.
     -->
-    <div class="plantilla-grid">
+    <div class="plantilla-layout">
 
-      <!-- Columna Defensa -->
-      <div class="zona-col">
-        <div class="zona-header zona-header-def">
-          🛡️ DEFENSA <span class="zona-count" id="count-def"></span>
+      <!--
+        CANCHA DE PLANTILLA — lado izquierdo
+        Muestra los nombres de los jugadores flotando en su posición.
+        Sin rectángulos — solo texto. JavaScript la genera con renderLineup().
+      -->
+      <div class="pitch-wrapper plantilla-pitch">
+        <p class="section-title" style="font-size:13px; margin-bottom:12px;">Alineación</p>
+        <div class="pitch-svg-container">
+          <svg id="lineup-pitch" class="pitch" viewBox="0 0 300 480" xmlns="http://www.w3.org/2000/svg">
+
+            <!-- Fondo del campo -->
+            <rect width="300" height="480" fill="#0f0a1a" rx="6"/>
+
+            <!-- Líneas del campo -->
+            <rect x="10" y="10" width="280" height="460" fill="none" stroke="rgba(212,175,55,0.5)" stroke-width="2" rx="2"/>
+            <line x1="10" y1="240" x2="290" y2="240" stroke="rgba(212,175,55,0.35)" stroke-width="1.5"/>
+            <circle cx="150" cy="240" r="38" fill="none" stroke="rgba(212,175,55,0.5)" stroke-width="1.5"/>
+            <circle cx="150" cy="240" r="3" fill="rgba(255,255,255,0.7)"/>
+
+            <!-- Área de ataque -->
+            <rect x="65" y="10"  width="170" height="80" fill="none" stroke="rgba(212,175,55,0.35)" stroke-width="1.5"/>
+            <rect x="105" y="10" width="90"  height="30" fill="none" stroke="rgba(212,175,55,0.35)" stroke-width="1.2"/>
+            <rect x="115" y="6"  width="70"  height="12" fill="rgba(255,255,255,0.05)" stroke="rgba(212,175,55,0.35)" stroke-width="1.5"/>
+
+            <!-- Área de defensa -->
+            <rect x="65" y="390"  width="170" height="80" fill="none" stroke="rgba(212,175,55,0.35)" stroke-width="1.5"/>
+            <rect x="105" y="440" width="90"  height="30" fill="none" stroke="rgba(212,175,55,0.35)" stroke-width="1.2"/>
+            <rect x="115" y="462" width="70"  height="12" fill="rgba(255,255,255,0.05)" stroke="rgba(212,175,55,0.35)" stroke-width="1.5"/>
+
+            <!-- Etiquetas de zona — referencia sutil -->
+            <text x="150" y="58"  text-anchor="middle" fill="rgba(212,175,55,0.2)" font-size="8" font-family="'DM Sans',sans-serif" letter-spacing="2">ATAQUE</text>
+            <text x="150" y="230" text-anchor="middle" fill="rgba(212,175,55,0.15)" font-size="8" font-family="'DM Sans',sans-serif" letter-spacing="2">MEDIOCAMPO</text>
+            <text x="150" y="438" text-anchor="middle" fill="rgba(212,175,55,0.2)" font-size="8" font-family="'DM Sans',sans-serif" letter-spacing="2">DEFENSA</text>
+
+            <!-- Grupo vacío — JavaScript inserta los nombres aquí -->
+            <g id="lineup-names"></g>
+
+          </svg>
         </div>
-        <div id="zona-def"></div>
-        <!-- JavaScript llena este div con los jugadores de Defensa -->
       </div>
 
-      <!-- Columna Mediocampo -->
-      <div class="zona-col">
-        <div class="zona-header zona-header-trans">
-          🔄 MEDIOCAMPO <span class="zona-count" id="count-trans"></span>
+      <!--
+        COLUMNAS POR ZONA — lado derecho
+        Una columna por zona: Defensa, Mediocampo, Ataque.
+        JavaScript llena cada div con los jugadores correspondientes.
+      -->
+      <div class="plantilla-cols">
+
+        <!-- Columna Defensa -->
+        <div class="zona-col">
+          <div class="zona-header zona-header-def">
+            DEFENSA <span class="zona-count" id="count-def"></span>
+          </div>
+          <div id="zona-def"></div>
         </div>
-        <div id="zona-trans"></div>
-      </div>
 
-      <!-- Columna Ataque -->
-      <div class="zona-col">
-        <div class="zona-header zona-header-atk">
-          🎯 ATAQUE <span class="zona-count" id="count-atk"></span>
+        <!-- Columna Mediocampo -->
+        <div class="zona-col">
+          <div class="zona-header zona-header-trans">
+            MEDIOCAMPO <span class="zona-count" id="count-trans"></span>
+          </div>
+          <div id="zona-trans"></div>
         </div>
-        <div id="zona-atk"></div>
-      </div>
 
-    </div><!-- fin plantilla-grid -->
+        <!-- Columna Ataque -->
+        <div class="zona-col">
+          <div class="zona-header zona-header-atk">
+            ATAQUE <span class="zona-count" id="count-atk"></span>
+          </div>
+          <div id="zona-atk"></div>
+        </div>
 
-    <!-- Botón para limpiar todos los registros -->
+      </div><!-- fin plantilla-cols -->
+
+    </div><!-- fin plantilla-layout -->
+
+    <!-- Botón limpiar — visible solo con ?admin=true en la URL -->
     <div style="text-align:center; margin-top:8px;">
       <button onclick="clearRoster()" style="background:rgba(231,76,60,0.1); border:1px solid rgba(231,76,60,0.3); color:#ff8a80; font-family:'DM Sans',sans-serif; font-size:13px; padding:10px 22px; border-radius:6px; cursor:pointer;">
         🗑️ Limpiar registros
       </button>
     </div>
 
-     <!-- Lista de jugadores registrados en esta sesión -->
+    <!-- Lista detallada de registros — oculta hasta que haya datos -->
     <div class="roster-section" id="roster-section" style="display:none;">
-      <p class="section-title">Registros de esta sesión</p>
+      <p class="section-title">Detalle de registros</p>
       <div id="roster-list"></div>
       <div style="margin-top:16px; text-align:center;">
         <button onclick="exportRoster()" style="background:var(--card); border:1px solid var(--card-border); color:var(--text); font-family:'DM Sans',sans-serif; font-size:13px; padding:10px 22px; border-radius:6px; cursor:pointer;">
@@ -565,13 +693,16 @@ body {
         </button>
       </div>
     </div>
+
   </div><!-- fin view-plantilla -->
- <!-- ══════════════════════════════════════════
-    VISTA 1 — CENSO
-    El formulario de registro de cada jugador.
-    Visible por defecto (clase "active").
+
+
+  <!-- ══════════════════════════════════════════
+    VISTA 2 — CENSO
+    El formulario donde cada jugador registra sus posiciones.
+    Oculta por defecto — se activa al hacer clic en la pestaña.
   ══════════════════════════════════════════ -->
-  <div class="tab-view active" id="view-censo">
+  <div class="tab-view" id="view-censo">
 
     <!-- Campo de nombre -->
     <div class="name-section">
@@ -586,9 +717,9 @@ body {
 
       <!--
         Indicador de paso — guía al jugador en tiempo real:
-          Paso 1 → "Toca tu posición principal"   (amarillo)
+          Paso 1 → "Toca tu posición principal"       (dorado)
           Paso 2 → "Ahora toca tu posición secundaria" (blanco)
-          Paso 3 → "Listo"                         (verde)
+          Paso 3 → "Listo"                             (verde)
         JavaScript actualiza su clase y texto en cada paso.
       -->
       <div class="step-wrapper">
@@ -606,17 +737,22 @@ body {
 
       <!--
         SVG = Scalable Vector Graphics
-        Es un formato de dibujo vectorial que vive dentro del HTML.
-        viewBox="0 0 300 480" define un canvas interno de 300x480 unidades.
-        Cada elemento (rect, circle, line, text) es una figura dibujada.
+        Canvas interno de 300x480 unidades.
+        Cada <rect>, <circle>, <line>, <text> es una figura dibujada.
+        Los NODOS INTERACTIVOS son grupos <g> con:
+          - class="role-node"          → estilos de hover y selección
+          - id="node-xxx"              → identificador único
+          - data-role="..."            → rol principal (lo lee JavaScript)
+          - data-subrole="..."         → subrol específico (lo lee JavaScript)
+          - onclick="selectNode(this)" → llama la función al hacer clic
       -->
       <div class="pitch-svg-container">
         <svg class="pitch" viewBox="0 0 300 480" xmlns="http://www.w3.org/2000/svg">
 
-          <!-- Fondo verde del campo -->
+          <!-- Fondo morado oscuro del campo — acorde al tema de la página -->
           <rect width="300" height="480" fill="#0f0a1a" rx="6"/>
 
-          <!-- Líneas del campo -->
+          <!-- Líneas del campo en dorado semitransparente -->
           <rect x="10" y="10" width="280" height="460" fill="none" stroke="rgba(212,175,55,0.5)" stroke-width="2" rx="2"/>
           <line x1="10" y1="240" x2="290" y2="240" stroke="rgba(212,175,55,0.35)" stroke-width="1.5"/>
 
@@ -627,83 +763,90 @@ body {
           <!-- Área de ataque (arriba) -->
           <rect x="65" y="10"  width="170" height="80" fill="none" stroke="rgba(212,175,55,0.35)" stroke-width="1.5"/>
           <rect x="105" y="10" width="90"  height="30" fill="none" stroke="rgba(212,175,55,0.35)" stroke-width="1.2"/>
-          <rect x="115" y="6"  width="70"  height="12" fill="rgba(255,255,255,0.15)" stroke="rgba(212,175,55,0.35)" stroke-width="1.5"/>
+          <rect x="115" y="6"  width="70"  height="12" fill="rgba(255,255,255,0.05)" stroke="rgba(212,175,55,0.35)" stroke-width="1.5"/>
 
           <!-- Área de defensa (abajo) -->
           <rect x="65" y="390"  width="170" height="80" fill="none" stroke="rgba(212,175,55,0.35)" stroke-width="1.5"/>
           <rect x="105" y="440" width="90"  height="30" fill="none" stroke="rgba(212,175,55,0.35)" stroke-width="1.2"/>
-          <rect x="115" y="462" width="70"  height="12" fill="rgba(255,255,255,0.15)" stroke="rgba(212,175,55,0.35)" stroke-width="1.5"/>
+          <rect x="115" y="462" width="70"  height="12" fill="rgba(255,255,255,0.05)" stroke="rgba(212,175,55,0.35)" stroke-width="1.5"/>
 
-          <!--
-            NODOS INTERACTIVOS
-            Cada nodo es un grupo <g> con:
-              - class="role-node"         → aplica estilos de hover y selección
-              - id="node-xxx"             → identificador único
-              - data-role="..."           → el rol principal (lo lee JavaScript)
-              - data-subrole="..."        → el subrol específico (lo lee JavaScript)
-              - onclick="selectNode(this)"→ llama a la función JavaScript al hacer clic
-
-            Dentro de cada grupo:
-              - <circle> → el círculo visual
-              - <text>   → el emoji y la etiqueta de texto
-          -->
-
-          <!-- ZONA DE ATAQUE -->
+          <!-- ZONA DE ATAQUE
+               Rectángulos con borde dorado y texto dorado con brillo -->
           <g class="role-node" id="node-ext-izq" data-role="Ataque" data-subrole="Extremo Izquierdo" onclick="selectNode(this)">
             <rect class="node-circle" x="33" y="128" width="64" height="24" rx="4"
                   fill="rgba(180,60,40,0.25)" stroke="rgba(212,175,55,0.7)" stroke-width="1"/>
-            <text x="65" y="144" text-anchor="middle" fill="#c9a84c" font-size="7.5" font-family="'DM Sans',sans-serif" font-weight="700">EXT IZQ</text>
+            <text x="65" y="144" text-anchor="middle" fill="#c9a84c"
+                  class="node-text-gold"
+                  font-size="7.5" font-family="'DM Sans',sans-serif" font-weight="700">EXT IZQ</text>
           </g>
 
           <g class="role-node" id="node-9" data-role="Ataque" data-subrole="Centro Delantero" onclick="selectNode(this)">
             <rect class="node-circle" x="116" y="82" width="68" height="24" rx="4"
                   fill="rgba(180,60,40,0.25)" stroke="rgba(212,175,55,0.7)" stroke-width="1"/>
-            <text x="150" y="98" text-anchor="middle" fill="#c9a84c" font-size="7.5" font-family="'DM Sans',sans-serif" font-weight="700">DELANTERO</text>
+            <text x="150" y="98" text-anchor="middle" fill="#c9a84c"
+                  class="node-text-gold"
+                  font-size="7.5" font-family="'DM Sans',sans-serif" font-weight="700">DELANTERO</text>
           </g>
 
           <g class="role-node" id="node-ext-der" data-role="Ataque" data-subrole="Extremo Derecho" onclick="selectNode(this)">
             <rect class="node-circle" x="203" y="128" width="64" height="24" rx="4"
                   fill="rgba(180,60,40,0.25)" stroke="rgba(212,175,55,0.7)" stroke-width="1"/>
-            <text x="235" y="144" text-anchor="middle" fill="#c9a84c" font-size="7.5" font-family="'DM Sans',sans-serif" font-weight="700">EXT DER</text>
+            <text x="235" y="144" text-anchor="middle" fill="#c9a84c"
+                  class="node-text-gold"
+                  font-size="7.5" font-family="'DM Sans',sans-serif" font-weight="700">EXT DER</text>
           </g>
 
-          <!-- ZONA DE MEDIOCAMPO -->
+          <!-- ZONA DE MEDIOCAMPO
+               Rectángulos con borde morado y texto morado con brillo -->
           <g class="role-node" id="node-vol-cen" data-role="Mediocampo" data-subrole="MCO" onclick="selectNode(this)">
             <rect class="node-circle" x="116" y="173" width="68" height="24" rx="4"
                   fill="rgba(107,63,160,0.25)" stroke="rgba(179,157,219,0.7)" stroke-width="1"/>
-            <text x="150" y="189" text-anchor="middle" fill="#b39ddb" font-size="7.5" font-family="'DM Sans',sans-serif" font-weight="700">MCO</text>
+            <text x="150" y="189" text-anchor="middle" fill="#b39ddb"
+                  class="node-text-purple"
+                  font-size="7.5" font-family="'DM Sans',sans-serif" font-weight="700">MCO</text>
           </g>
 
           <g class="role-node" id="node-vol-off" data-role="Mediocampo" data-subrole="Mediocentro" onclick="selectNode(this)">
             <rect class="node-circle" x="116" y="268" width="68" height="24" rx="4"
                   fill="rgba(107,63,160,0.25)" stroke="rgba(179,157,219,0.7)" stroke-width="1"/>
-            <text x="150" y="284" text-anchor="middle" fill="#b39ddb" font-size="7.5" font-family="'DM Sans',sans-serif" font-weight="700">MEDIOCENTRO</text>
+            <text x="150" y="284" text-anchor="middle" fill="#b39ddb"
+                  class="node-text-purple"
+                  font-size="7.5" font-family="'DM Sans',sans-serif" font-weight="700">MEDIOCENTRO</text>
           </g>
 
-          <!-- ZONA DE DEFENSA -->
+          <!-- ZONA DE DEFENSA
+               Rectángulos con borde dorado y texto dorado con brillo -->
           <g class="role-node" id="node-lat-izq" data-role="Defensa" data-subrole="Lateral Izquierdo" onclick="selectNode(this)">
             <rect class="node-circle" x="43" y="328" width="64" height="24" rx="4"
                   fill="rgba(40,80,160,0.25)" stroke="rgba(212,175,55,0.7)" stroke-width="1"/>
-            <text x="75" y="344" text-anchor="middle" fill="#c9a84c" font-size="7.5" font-family="'DM Sans',sans-serif" font-weight="700">LAT IZQ</text>
+            <text x="75" y="344" text-anchor="middle" fill="#c9a84c"
+                  class="node-text-gold"
+                  font-size="7.5" font-family="'DM Sans',sans-serif" font-weight="700">LAT IZQ</text>
           </g>
 
           <g class="role-node" id="node-cen-der" data-role="Defensa" data-subrole="Central" onclick="selectNode(this)">
             <rect class="node-circle" x="116" y="348" width="68" height="24" rx="4"
                   fill="rgba(40,80,160,0.25)" stroke="rgba(212,175,55,0.7)" stroke-width="1"/>
-            <text x="150" y="364" text-anchor="middle" fill="#c9a84c" font-size="7.5" font-family="'DM Sans',sans-serif" font-weight="700">CENTRAL</text>
+            <text x="150" y="364" text-anchor="middle" fill="#c9a84c"
+                  class="node-text-gold"
+                  font-size="7.5" font-family="'DM Sans',sans-serif" font-weight="700">CENTRAL</text>
           </g>
 
           <g class="role-node" id="node-lat-der" data-role="Defensa" data-subrole="Lateral Derecho" onclick="selectNode(this)">
             <rect class="node-circle" x="193" y="328" width="64" height="24" rx="4"
                   fill="rgba(40,80,160,0.25)" stroke="rgba(212,175,55,0.7)" stroke-width="1"/>
-            <text x="225" y="344" text-anchor="middle" fill="#c9a84c" font-size="7.5" font-family="'DM Sans',sans-serif" font-weight="700">LAT DER</text>
+            <text x="225" y="344" text-anchor="middle" fill="#c9a84c"
+                  class="node-text-gold"
+                  font-size="7.5" font-family="'DM Sans',sans-serif" font-weight="700">LAT DER</text>
           </g>
 
-          <!-- PORTERO -->
+          <!-- PORTERO — borde dorado más grueso para destacarlo -->
           <g class="role-node" id="node-portero" data-role="Defensa" data-subrole="Portero" onclick="selectNode(this)">
             <rect class="node-circle" x="116" y="418" width="68" height="24" rx="4"
-                  fill="rgba(20,40,20,0.4)" stroke="rgba(212,175,55,0.9)" stroke-width="1.5"/>
-            <text x="150" y="434" text-anchor="middle" fill="#c9a84c" font-size="7.5" font-family="'DM Sans',sans-serif" font-weight="700">PORTERO</text>
+                  fill="rgba(20,10,40,0.5)" stroke="rgba(212,175,55,0.9)" stroke-width="1.5"/>
+            <text x="150" y="434" text-anchor="middle" fill="#c9a84c"
+                  class="node-text-gold"
+                  font-size="7.5" font-family="'DM Sans',sans-serif" font-weight="700">PORTERO</text>
           </g>
 
         </svg>
@@ -722,7 +865,6 @@ body {
           <span class="s-label">Posición principal</span>
           <span class="s-val">
             <span id="prev-subrole">—</span>
-            <!-- s-badge muestra el rol (ej: "Defensa") en una etiqueta de color -->
             <span class="s-badge s-badge-primary" id="prev-role-badge"></span>
           </span>
         </div>
@@ -739,14 +881,13 @@ body {
     <!-- Botón de confirmar -->
     <div class="submit-area">
       <button class="submit-btn" id="submitBtn" onclick="submitForm()" disabled>
-        CONFIRMAR REGISTRO
+        Confirmar Registro
       </button>
       <!-- disabled → empieza deshabilitado, JavaScript lo activa cuando todo está completo -->
     </div>
 
-   
-
   </div><!-- fin view-censo -->
+
 </div><!-- fin container -->
 
 <!-- Notificación temporal -->
@@ -770,15 +911,15 @@ body {
 <script>
 
   // ── URL del puente con Google Sheets ──
-  // Esta es la dirección del Apps Script que recibe y entrega los datos.
-  // doPost → recibe registros nuevos
+  // Esta dirección conecta la app con el Apps Script.
+  // doPost → recibe registros nuevos y los guarda en la hoja
   // doGet  → devuelve todos los registros guardados
   const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwQfsfgL4cfbxFb-tp7dqxp-VflbXYDCf7XsMRF7m624G9hSP-c6tzLCOKEZfLKzheAWw/exec';
 
   // ── Variables de estado ──
   // selectionStep controla en qué momento del flujo está el usuario:
-  //   1 = esperando que elija posición principal
-  //   2 = esperando que elija posición secundaria
+  //   1 = esperando posición principal
+  //   2 = esperando posición secundaria
   //   3 = ambas elegidas, listo para confirmar
   let selectionStep = 1;
 
@@ -789,12 +930,12 @@ body {
   let secondaryRole    = '';    // ej: "Mediocampo"
   let secondarySubrole = '';    // ej: "MCO"
 
-  // Lista de jugadores en memoria — se carga desde Google Sheets al abrir la página
+  // Lista de jugadores en memoria — se carga desde Google Sheets
   let roster = [];
 
 
   // ── FUNCIÓN: switchTab ──
-  // Alterna entre las pestañas "Censo" y "Plantilla".
+  // Alterna entre las pestañas "Plantilla" y "Censo".
   // Recibe el nombre de la pestaña destino como parámetro.
   function switchTab(tab) {
 
@@ -820,16 +961,17 @@ body {
       if (primaryNode) primaryNode.classList.remove('selected-primary');
       el.classList.add('selected-primary');
       primaryNode    = el;
-      primaryRole    = el.dataset.role;
-      primarySubrole = el.dataset.subrole;
+      primaryRole    = el.dataset.role;    // lee data-role del HTML
+      primarySubrole = el.dataset.subrole; // lee data-subrole del HTML
       selectionStep  = 2;
       updateStepIndicator();
       updateSummary();
-      return;
+      return; // sale de la función — no ejecuta los otros pasos
     }
 
     // PASO 2 — elige posición secundaria
     if (selectionStep === 2) {
+      // No puede elegir el mismo nodo que la principal
       if (el === primaryNode) {
         showToast('⚠️ Elegí una posición diferente a la principal');
         return;
@@ -845,7 +987,8 @@ body {
       return;
     }
 
-    // PASO 3 — reinicia si toca un nodo diferente
+    // PASO 3 — ya eligió las dos.
+    // Si toca un nodo diferente, reinicia con ese como nueva principal.
     if (el !== primaryNode && el !== secondaryNode) {
       if (primaryNode)   primaryNode.classList.remove('selected-primary');
       if (secondaryNode) secondaryNode.classList.remove('selected-secondary');
@@ -875,31 +1018,39 @@ body {
       indicator.textContent = '2° Ahora toca tu posición secundaria';
     } else {
       indicator.className   = 'selection-step step-done';
-      indicator.textContent = '✓ Listo — Selecciona un nodo para cambiar';
+      indicator.textContent = '✓ Listo — tocá un nodo para cambiar';
     }
   }
 
 
   // ── FUNCIÓN: updateSummary ──
   // Actualiza el resumen y habilita el botón si todo está completo.
+  // Se llama cada vez que el usuario cambia algo.
   function updateSummary() {
     const name = document.getElementById('playerName').value.trim();
+    // .trim() elimina espacios al inicio y al final, igual que en Python
+
     document.getElementById('prev-name').textContent            = name || '(sin nombre)';
     document.getElementById('prev-subrole').textContent         = primarySubrole   || '—';
     document.getElementById('prev-role-badge').textContent      = primaryRole      || '';
     document.getElementById('prev-secondary').textContent       = secondarySubrole || '(pendiente)';
     document.getElementById('prev-secondary-badge').textContent = secondaryRole    || '';
     document.getElementById('form-summary').style.display       = 'block';
+
+    // Habilita el botón solo si nombre + principal + secundaria están completos
+    // Equivale a: if name and primaryRole and secondaryRole → True
     const ready = name && primaryRole && secondaryRole;
     document.getElementById('submitBtn').disabled = !ready;
   }
 
+  // Escucha cambios en el campo de nombre y actualiza el resumen en tiempo real
+  // Equivale a un event listener — como un callback en Python
   document.getElementById('playerName').addEventListener('input', updateSummary);
 
 
   // ── FUNCIÓN: submitForm ──
   // Envía el registro a Google Sheets cuando el jugador confirma.
-  // Antes guardaba en localStorage — ahora envía a la URL del script.
+  // "async" permite usar "await" para esperar la respuesta del servidor.
   async function submitForm() {
 
     const name = document.getElementById('playerName').value.trim();
@@ -943,38 +1094,37 @@ body {
       document.getElementById('form-summary').style.display = 'none';
 
     } catch (error) {
-      // Si algo falla, muestra el error
       showToast('❌ Error al enviar — revisá tu conexión');
       console.log('Error:', error);
     }
 
     // Reactiva el botón
-    btn.textContent = 'CONFIRMAR REGISTRO';
+    btn.textContent = 'Confirmar Registro';
     btn.disabled = true; // sigue deshabilitado hasta nueva selección
   }
 
 
   // ── FUNCIÓN: loadRoster ──
-  // Carga todos los registros desde Google Sheets y los muestra.
-  // Se llama al abrir la pestaña Plantilla.
-  // Equivale a hacer un requests.get() en Python
+  // Carga todos los registros desde Google Sheets.
+  // Se llama al abrir la pestaña Plantilla y al cargar la página.
+  // "async/await" es como hacer requests.get() en Python y esperar la respuesta.
   async function loadRoster() {
 
-    // Muestra mensaje de carga mientras espera respuesta
     document.getElementById('plantilla-total').textContent = 'Cargando registros...';
 
     try {
       const response = await fetch(SHEETS_URL);
-      // await espera la respuesta — como esperar el resultado de una función en Python
+      // await espera la respuesta antes de continuar
 
       roster = await response.json();
-      // .json() convierte el texto de respuesta en objeto JavaScript — como json.loads() en Python
+      // .json() convierte el texto de respuesta en objeto JS — como json.loads() en Python
 
       renderPlantilla();
       renderRoster();
+      renderLineup(); // dibuja los nombres sobre la cancha de Plantilla
 
     } catch (error) {
-      document.getElementById('plantilla-total').textContent = 'Error al cargar registros';
+      document.getElementById('plantilla-total').textContent = 'Error al cargar — revisá tu conexión';
       console.log('Error:', error);
     }
   }
@@ -982,6 +1132,7 @@ body {
 
   // ── FUNCIÓN: renderRoster ──
   // Dibuja la lista detallada de jugadores en la pestaña Plantilla.
+  // "Render" = convertir datos en elementos visuales HTML.
   function renderRoster() {
 
     const section = document.getElementById('roster-section');
@@ -993,14 +1144,16 @@ body {
     }
 
     section.style.display = 'block';
-    list.innerHTML = '';
+    list.innerHTML = ''; // limpia antes de redibujar
 
     roster.forEach((p, i) => {
 
-      // Función interna: devuelve la clase CSS según el rol
+      // Función interna: devuelve la clase CSS de color según el rol
+      // Equivale a un if/elif/else en Python
       const tagClass = role => role === 'Defensa'    ? 'tag-def'   :
                                role === 'Mediocampo' ? 'tag-trans' : 'tag-atk';
 
+      // Template literal (como f-string en Python) para generar HTML
       list.innerHTML += `
         <div class="roster-item">
           <div class="roster-num">${String(i + 1).padStart(2, '0')}</div>
@@ -1019,22 +1172,96 @@ body {
   // Dibuja las columnas por zona en la pestaña Plantilla.
   function renderPlantilla() {
 
+    // Agrupa jugadores por rol (como un defaultdict en Python)
     const groups = { Defensa: [], Mediocampo: [], Ataque: [] };
     roster.forEach(p => {
       if (groups[p.role]) groups[p.role].push(p);
     });
 
+    // Actualiza el contador total
     document.getElementById('plantilla-total').textContent =
       `${roster.length} jugador${roster.length !== 1 ? 'es' : ''} registrado${roster.length !== 1 ? 's' : ''}`;
 
+    // Rellena cada columna
     fillZona('zona-def',   'count-def',   groups.Defensa);
     fillZona('zona-trans', 'count-trans', groups.Mediocampo);
     fillZona('zona-atk',   'count-atk',  groups.Ataque);
   }
 
 
+  // ── FUNCIÓN: renderLineup ──
+  // Dibuja los nombres de los jugadores sobre la cancha de Plantilla.
+  // Cada posición tiene coordenadas (x, y) predefinidas — las mismas
+  // que los nodos del Censo pero sin rectángulos.
+  // Si hay varios jugadores en la misma posición, se apilan verticalmente
+  // sumando 12px por cada nombre adicional.
+  function renderLineup() {
+
+    // Mapa de posiciones → coordenadas en el SVG
+    // Cada key es el valor exacto de data-subrole en los nodos del Censo
+    const coords = {
+      'Extremo Izquierdo':  { x: 65,  y: 140 },
+      'Centro Delantero':   { x: 150, y: 95  },
+      'Extremo Derecho':    { x: 235, y: 140 },
+      'MCO':                { x: 150, y: 185 },
+      'Mediocentro':        { x: 150, y: 280 },
+      'Lateral Izquierdo':  { x: 75,  y: 340 },
+      'Central':            { x: 150, y: 360 },
+      'Lateral Derecho':    { x: 225, y: 340 },
+      'Portero':            { x: 150, y: 430 },
+    };
+
+    // Agrupa jugadores por subrol (posición específica)
+    // Resultado: { "MCO": ["Juan", "Pedro"], "Central": ["Carlos"], ... }
+    const byPosition = {};
+    roster.forEach(p => {
+      if (!byPosition[p.subrole]) byPosition[p.subrole] = [];
+      byPosition[p.subrole].push(p.name);
+    });
+
+    // Genera el SVG de los nombres
+    // Para cada posición con jugadores, dibuja un texto por jugador
+    let svgContent = '';
+
+    Object.entries(byPosition).forEach(([subrole, names]) => {
+      const pos = coords[subrole];
+      if (!pos) return; // si la posición no tiene coordenadas, la ignora
+
+      // Calcula el color según el rol de la posición
+      const isMiddle = subrole === 'MCO' || subrole === 'Mediocentro';
+      const color    = isMiddle ? '#b39ddb' : '#c9a84c';
+      const glow     = isMiddle
+        ? 'drop-shadow(0 0 4px rgba(179,157,219,0.9))'
+        : 'drop-shadow(0 0 4px rgba(212,175,55,0.9))';
+
+      // Dibuja cada nombre apilado verticalmente
+      // El primer nombre va en y exacta, los siguientes suman 13px
+      names.forEach((name, i) => {
+        const y = pos.y + (i * 13); // 13px entre nombres apilados
+        svgContent += `
+          <text
+            x="${pos.x}" y="${y}"
+            text-anchor="middle"
+            fill="${color}"
+            font-size="8.5"
+            font-family="'DM Sans',sans-serif"
+            font-weight="700"
+            style="filter:${glow}"
+          >${name}</text>`;
+      });
+    });
+
+    // Inserta los nombres en el grupo vacío del SVG
+    const group = document.getElementById('lineup-names');
+    if (group) group.innerHTML = svgContent;
+  }
+
+
   // ── FUNCIÓN: fillZona ──
   // Rellena una columna de la plantilla con los jugadores de esa zona.
+  // zoneId  = id del div donde escribir
+  // countId = id del span del contador
+  // players = lista de jugadores de esa zona
   function fillZona(zoneId, countId, players) {
 
     const zone = document.getElementById(zoneId);
@@ -1045,6 +1272,8 @@ body {
       return;
     }
 
+    // .map() recorre la lista y transforma cada elemento (como list comprehension en Python)
+    // .join('') une todos los strings resultantes en uno solo
     zone.innerHTML = players.map(p => `
       <div class="zona-player">
         <div class="zona-player-name">${p.name}</div>
@@ -1056,7 +1285,7 @@ body {
 
 
   // ── FUNCIÓN: clearRoster ──
-  // Limpia la vista local — no borra Google Sheets.
+  // Limpia la vista local — NO borra Google Sheets.
   // Para borrar los datos reales hay que hacerlo directamente en la hoja.
   function clearRoster() {
     if (!confirm('¿Seguro que querés limpiar la vista? Los datos en Google Sheets no se borran.')) return;
@@ -1068,7 +1297,7 @@ body {
 
 
   // ── FUNCIÓN: exportRoster ──
-  // Descarga el plantel como archivo .txt.
+  // Descarga el plantel como archivo .txt organizado por zona.
   function exportRoster() {
 
     let txt = `CENSO POSICIONAL — Agulas Calvas FC\n${'─'.repeat(45)}\n`;
@@ -1080,6 +1309,7 @@ body {
       players.forEach(p => txt += `  • ${p.name} — ${p.subrole} | 2°: ${p.secondary}\n`);
     });
 
+    // Crea un archivo en memoria y lanza la descarga automáticamente
     const blob = new Blob([txt], { type: 'text/plain' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -1089,32 +1319,40 @@ body {
 
 
   // ── FUNCIÓN: showToast ──
-  // Muestra la notificación temporal en la parte inferior.
+  // Muestra la notificación temporal en la parte inferior de la pantalla.
   function showToast(msg) {
     const t = document.getElementById('toast');
     t.textContent = msg;
-    t.classList.add('show');
+    t.classList.add('show');          // sube a posición visible (animación CSS)
     setTimeout(() => t.classList.remove('show'), 2800);
+    // setTimeout = ejecutar algo después de N milisegundos
+    // Es como time.sleep() en Python pero sin bloquear el programa
   }
 
 
   // ── FUNCIÓN: isAdmin ──
   // Lee la URL y verifica si tiene ?admin=true.
+  // window.location.search devuelve todo lo que hay después del ?
   // Equivale a leer un argumento en Python.
   function isAdmin() {
     const params = new URLSearchParams(window.location.search);
     // URLSearchParams convierte "?admin=true" en un objeto consultable
     return params.get('admin') === 'true';
+    // .get('admin') busca el valor — como dict['admin'] en Python
   }
 
 
   // ── Inicialización ──
   // Se ejecuta cuando la página carga por primera vez.
   // Oculta el botón de limpiar si no es admin.
+  // Carga los registros desde Google Sheets para mostrar en Plantilla.
   if (!isAdmin()) {
     const btnLimpiar = document.querySelector('[onclick="clearRoster()"]');
     if (btnLimpiar) btnLimpiar.style.display = 'none';
   }
+
+  // Carga los datos al abrir la página — la Plantilla ya está activa por defecto
+  loadRoster();
 
 </script>
 
