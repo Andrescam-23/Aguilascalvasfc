@@ -134,7 +134,7 @@
     opacity: 0.18;   /* cuanto más alto, más visible el patrón */
     background:
       linear-gradient(45deg,  transparent 0 43%, rgba(120,70,170,0.1)  43% 50%, transparent 50% 100%),
-      linear-gradient(-45deg, transparent 0 43%, rgba(120,70,170,0.04) 43% 50%, transparent 50% 100%);
+      linear-gradient(-45deg, transparent 0 43%, rgba(120,70,170,0.08) 43% 50%, transparent 50% 100%);
     background-size: 40px 40px; /* tamaño de cada rombo — más pequeño = más denso */
     mix-blend-mode: screen;     /* modo de fusión que aclara sobre el fondo oscuro */
   }
@@ -563,7 +563,7 @@
 
   <!-- Encabezado -->
   <header>
-    <div class="badge">⚽ Aguilas Calvas FC</div>
+    <div class="badge">Aguilas Calvas FC</div>
     <h1>CENSO <span>POSICIONAL</span></h1>
     <p>Haz parte de la historia de este equipo inscribiendo tu fichaje</p>
   </header>
@@ -574,8 +574,8 @@
     Eso la hace la vista inicial cuando se carga la página.
   -->
   <div class="tabs">
-    <button class="tab-btn active" id="tab-plantilla" onclick="switchTab('plantilla')">⚽ Plantilla</button>
-    <button class="tab-btn"        id="tab-censo"     onclick="switchTab('censo')">📋 Censo</button>
+    <button class="tab-btn active" id="tab-plantilla" onclick="switchTab('plantilla')">Plantilla</button>
+    <button class="tab-btn"        id="tab-censo"     onclick="switchTab('censo')">Censo</button>
   </div>
 
 
@@ -629,10 +629,6 @@
             <rect x="105" y="440" width="90"  height="30" fill="none" stroke="rgba(212,175,55,0.35)" stroke-width="1.2"/>
             <rect x="115" y="462" width="70"  height="12" fill="rgba(255,255,255,0.05)" stroke="rgba(212,175,55,0.35)" stroke-width="1.5"/>
 
-            <!-- Etiquetas de zona — referencia sutil -->
-            <text x="150" y="58"  text-anchor="middle" fill="rgba(212,175,55,0.2)" font-size="8" font-family="'DM Sans',sans-serif" letter-spacing="2">ATAQUE</text>
-            <text x="150" y="230" text-anchor="middle" fill="rgba(212,175,55,0.15)" font-size="8" font-family="'DM Sans',sans-serif" letter-spacing="2">MEDIOCAMPO</text>
-            <text x="150" y="438" text-anchor="middle" fill="rgba(212,175,55,0.2)" font-size="8" font-family="'DM Sans',sans-serif" letter-spacing="2">DEFENSA</text>
 
             <!-- Grupo vacío — JavaScript inserta los nombres aquí -->
             <g id="lineup-names"></g>
@@ -1018,7 +1014,7 @@
       indicator.textContent = '2° Ahora toca tu posición secundaria';
     } else {
       indicator.className   = 'selection-step step-done';
-      indicator.textContent = '✓ Listo — tocá un nodo para cambiar';
+      indicator.textContent = '✓ Listo — Selecciona un nodo para cambiar';
     }
   }
 
