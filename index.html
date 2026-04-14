@@ -641,16 +641,7 @@
       <!-- disabled → empieza deshabilitado, JavaScript lo activa cuando todo está completo -->
     </div>
 
-    <!-- Lista de jugadores registrados en esta sesión -->
-    <div class="roster-section" id="roster-section" style="display:none;">
-      <p class="section-title">Registros de esta sesión</p>
-      <div id="roster-list"></div>
-      <div style="margin-top:16px; text-align:center;">
-        <button onclick="exportRoster()" style="background:var(--card); border:1px solid var(--card-border); color:var(--text); font-family:'DM Sans',sans-serif; font-size:13px; padding:10px 22px; border-radius:6px; cursor:pointer;">
-          📋 Exportar lista
-        </button>
-      </div>
-    </div>
+   
 
   </div><!-- fin view-censo -->
 
@@ -711,6 +702,16 @@
       </button>
     </div>
 
+     <!-- Lista de jugadores registrados en esta sesión -->
+    <div class="roster-section" id="roster-section" style="display:none;">
+      <p class="section-title">Registros de esta sesión</p>
+      <div id="roster-list"></div>
+      <div style="margin-top:16px; text-align:center;">
+        <button onclick="exportRoster()" style="background:var(--card); border:1px solid var(--card-border); color:var(--text); font-family:'DM Sans',sans-serif; font-size:13px; padding:10px 22px; border-radius:6px; cursor:pointer;">
+          📋 Exportar lista
+        </button>
+      </div>
+    </div>
   </div><!-- fin view-plantilla -->
 
 </div><!-- fin container -->
